@@ -1,0 +1,5 @@
+#Ignore Weka lib
+weka.xml
+
+#Intellij workspace
+workspace.xml
