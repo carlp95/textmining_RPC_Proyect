@@ -81,6 +81,52 @@ public class PDFProcesses {
         //return Text;
     }
 
+    public void OneDocumentToText(File fileparam) {
+        this.pdfStripper = null;
+        this.pdDoc = null;
+        this.cosDoc = null;
+
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+
+        try {
+            //String fileName = child.getName();
+            //System.out.println(child.getPath());
+            fw = new FileWriter(fileparam.getPath().replace(".pdf", ".txt"));
+            bw = new BufferedWriter(fw);
+            parser = new PDFParser(new RandomAccessFile(fileparam, "r")); // update for PDFBox V 2.0
+
+            parser.parse();
+            cosDoc = parser.getDocument();
+            pdfStripper = new PDFTextStripper();
+            pdDoc = new PDDocument(cosDoc);
+            pdDoc.getNumberOfPages();
+            pdfStripper.setStartPage(1);
+            //pdfStripper.setEndPage(10);
+
+            // reading text from page 1 to 10
+            // if you want to get text from full pdf file use this code
+            pdfStripper.setEndPage(pdDoc.getNumberOfPages());
+
+            Text = pdfStripper.getText(pdDoc);
+            bw.write(Text);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bw != null) {
+                    bw.close();
+                }
+                if (fw != null) {
+                    fw.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+        }
+    }
     //private void setFilePath(String filePath) {
      //   this.filePath = filePath;
     //}
