@@ -5,4 +5,4 @@ weka.xml
 workspace.xml
 
 #out
-out/*
+/out/*
