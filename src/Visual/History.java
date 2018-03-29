@@ -5,6 +5,11 @@
  */
 package Visual;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+
 /**
  *
  * @author carlo
@@ -14,8 +19,15 @@ public class History extends javax.swing.JDialog {
     /**
      * Creates new form History
      */
+    Image save_image;
     public History(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        try{
+            this.setIconImage(ImageIO.read(new File("resources/images/history.png")));
+            save_image = ImageIO.read(new File("resources/images/save.png"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         initComponents();
     }
 
@@ -31,7 +43,7 @@ public class History extends javax.swing.JDialog {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jSeparator1 = new javax.swing.JSeparator();
-        savebtn = new javax.swing.JButton();
+        savebtn = new javax.swing.JButton(new ImageIcon(save_image));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Historial");

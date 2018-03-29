@@ -7,7 +7,9 @@ package Visual;
 
 import Logic.PDFProcesses;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 
 /**
@@ -20,10 +22,20 @@ public class MainVisual extends javax.swing.JFrame {
      * Creates new form Principal
      */
     private File FilePath;
+    Image log_image, execute_image, find_image;
     public MainVisual() {
+        try{
+            log_image = ImageIO.read(new File("resources/images/history.png"));
+            execute_image = ImageIO.read(new File("resources/images/play-button.png"));
+            find_image = ImageIO.read(new File("resources/images/research.png"));
+            this.setIconImage(ImageIO.read(new File("resources/images/house.png")));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         initComponents();
         this.setTitle("Ventana Principal");
         this.setResizable(false);
+
     }
 
     /**
@@ -37,10 +49,10 @@ public class MainVisual extends javax.swing.JFrame {
 
         Panel_Principal = new javax.swing.JPanel();
         Label_Buscar_Paper = new javax.swing.JLabel();
-        Boton_Buscar_paper = new javax.swing.JButton();
-        historybtn = new javax.swing.JButton();
+        Boton_Buscar_paper = new javax.swing.JButton(new ImageIcon(find_image));
+        historybtn = new javax.swing.JButton(new ImageIcon(log_image));
         filePathTextField = new javax.swing.JTextField();
-        executeAlgorithmbtn = new javax.swing.JButton();
+        executeAlgorithmbtn = new javax.swing.JButton(new ImageIcon(execute_image));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -137,12 +149,22 @@ public class MainVisual extends javax.swing.JFrame {
 
     private void historybtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_historybtnActionPerformed
         // TODO add your handling code here:
+        History historyVisual = new History(null,true);
+        historyVisual.setLocationRelativeTo(null);
+        historyVisual.setVisible(true);
     }//GEN-LAST:event_historybtnActionPerformed
 
     private void executeAlgorithmbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeAlgorithmbtnActionPerformed
         // TODO add your handling code here:
         PDFProcesses pdfProcesses = new PDFProcesses();
         pdfProcesses.OneDocumentToText(FilePath);
+
+
+
+        ResultDialog resultDialog = new ResultDialog(null, false);
+        resultDialog.setLocationRelativeTo(null);
+        resultDialog.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_executeAlgorithmbtnActionPerformed
 
 

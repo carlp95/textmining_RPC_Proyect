@@ -104,10 +104,18 @@ public class ResultDialog extends javax.swing.JDialog {
 
     private void chooseOtherbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chooseOtherbtnActionPerformed
         // TODO add your handling code here:
+        MainVisual mainVisual = new MainVisual();
+        mainVisual.setLocationRelativeTo(null);
+        mainVisual.setVisible(true);
+        this.dispose();
+
     }//GEN-LAST:event_chooseOtherbtnActionPerformed
 
     private void backlogbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backlogbtnActionPerformed
         // TODO add your handling code here:
+        BackLog backLog = new BackLog(null,true);
+        backLog.setLocationRelativeTo(null);
+        backLog.setVisible(true);
     }//GEN-LAST:event_backlogbtnActionPerformed
 
     /**
