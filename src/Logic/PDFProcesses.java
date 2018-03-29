@@ -1,15 +1,15 @@
 package Logic;
 
+import com.sun.org.apache.bcel.internal.classfile.LineNumber;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import javax.xml.stream.FactoryConfigurationError;
+import java.io.*;
+import java.util.Scanner;
 
 public class PDFProcesses {
     private PDFParser parser;
@@ -131,5 +131,68 @@ public class PDFProcesses {
      //   this.filePath = filePath;
     //}
 
+    public void CleanDocumentText(File fileparam)
+    {
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        int CleanNumber = 5000000;
+        String line;
+        String line2;
+        try
+        {
+            fw = new FileWriter("resources/papers/"+fileparam.getName()+"_cleaned.txt");
+            bw = new BufferedWriter(fw);
+            Scanner scanner = null;
+            scanner = new Scanner(fileparam);
+            int lineNum = 0;
+            int lineNum2 = 0;
+            Boolean bool = false;
 
+            while (scanner.hasNextLine())
+            {
+                line = scanner.nextLine();
+                if(line.contains("Abstract") || line.contains("abstract"))
+                {
+                    bool=true;
+                }
+                if(bool)
+                {
+                    if (line.contains("introduction") || line.contains("Introduction"))
+                    {
+                        CleanNumber = lineNum;
+                        System.out.println(CleanNumber);
+                    }
+                    if(lineNum<CleanNumber)
+                    {
+                        bw.write(line);
+                    }
+                }
+                lineNum++;
+            }
+
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                if (bw != null)
+                {
+                    bw.close();
+                }
+                if (fw != null)
+                {
+                    fw.close();
+                }
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+
+        }
+
+    }
 }

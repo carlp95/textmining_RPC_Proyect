@@ -3,6 +3,7 @@ package Logic;
 import Visual.MainVisual;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 
 public class Main {
@@ -51,9 +52,11 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        /*PDFProcesses procesarpdf = new PDFProcesses();
-        procesarpdf.ToText();*/
+        PDFProcesses procesarpdf = new PDFProcesses();
+        procesarpdf.CleanDocumentText(new File("/home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/emcat-mlj99.txt"));
         getInstance();
+
+
 
 
     }
