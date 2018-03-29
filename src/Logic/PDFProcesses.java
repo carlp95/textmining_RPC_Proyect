@@ -154,7 +154,7 @@ public class PDFProcesses {
                 if(getFileExtension(child).equals("txt")){
                 try
                 {
-                    fw = new FileWriter("resources/papers/"+child.getName()+"_cleaned.txt");
+                    fw = new FileWriter("resources/papers/"+child.getName().replace(".txt","")+"_cleaned.txt");
                     bw = new BufferedWriter(fw);
                     Scanner scanner = null;
                     scanner = new Scanner(child);
@@ -174,7 +174,6 @@ public class PDFProcesses {
                             if (line.contains("introduction") || line.contains("Introduction"))
                             {
                                 CleanNumber = lineNum;
-                                System.out.println(CleanNumber);
                             }
                             if(lineNum<CleanNumber)
                             {
