@@ -53,7 +53,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         PDFProcesses procesarpdf = new PDFProcesses();
-        procesarpdf.CleanDocumentText(new File("/home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/emcat-mlj99.txt"));
+        procesarpdf.CleanDocumentText();
         getInstance();
 
 

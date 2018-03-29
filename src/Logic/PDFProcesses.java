@@ -1,6 +1,7 @@
 package Logic;
 
 import com.sun.org.apache.bcel.internal.classfile.LineNumber;
+import org.apache.commons.compress.compressors.FileNameUtil;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.pdfparser.PDFParser;
@@ -10,6 +11,9 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import javax.xml.stream.FactoryConfigurationError;
 import java.io.*;
 import java.util.Scanner;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PDFProcesses {
     private PDFParser parser;
@@ -61,7 +65,6 @@ public class PDFProcesses {
 
                     Text = pdfStripper.getText(pdDoc);
                     bw.write(Text);
-
                 }catch (IOException e){
                     e.printStackTrace();
                 }finally {
@@ -76,6 +79,7 @@ public class PDFProcesses {
                         ex.printStackTrace();
                     }
                 }
+
             }
         }
         //return Text;
@@ -131,68 +135,88 @@ public class PDFProcesses {
      //   this.filePath = filePath;
     //}
 
-    public void CleanDocumentText(File fileparam)
+    public void CleanDocumentText()
     {
         BufferedWriter bw = null;
         FileWriter fw = null;
         int CleanNumber = 5000000;
         String line;
         String line2;
-        try
-        {
-            fw = new FileWriter("resources/papers/"+fileparam.getName()+"_cleaned.txt");
-            bw = new BufferedWriter(fw);
-            Scanner scanner = null;
-            scanner = new Scanner(fileparam);
-            int lineNum = 0;
-            int lineNum2 = 0;
-            Boolean bool = false;
 
-            while (scanner.hasNextLine())
-            {
-                line = scanner.nextLine();
-                if(line.contains("Abstract") || line.contains("abstract"))
+        File directory = new File("resources/papers/"); //Directory of the resources
+        File[] directoryfiles = directory.listFiles(); //List of files that are in that directory
+
+
+        if (directoryfiles != null) { //If the directory have files it can do everything
+            for (File child : directoryfiles) { //files iteration
+
+
+                if(getFileExtension(child).equals("txt")){
+                try
                 {
-                    bool=true;
-                }
-                if(bool)
-                {
-                    if (line.contains("introduction") || line.contains("Introduction"))
+                    fw = new FileWriter("resources/papers/"+child.getName()+"_cleaned.txt");
+                    bw = new BufferedWriter(fw);
+                    Scanner scanner = null;
+                    scanner = new Scanner(child);
+                    int lineNum = 0;
+                    int lineNum2 = 0;
+                    Boolean bool = false;
+
+                    while (scanner.hasNextLine())
                     {
-                        CleanNumber = lineNum;
-                        System.out.println(CleanNumber);
+                        line = scanner.nextLine();
+                        if(line.contains("Abstract") || line.contains("abstract"))
+                        {
+                            bool=true;
+                        }
+                        if(bool)
+                        {
+                            if (line.contains("introduction") || line.contains("Introduction"))
+                            {
+                                CleanNumber = lineNum;
+                                System.out.println(CleanNumber);
+                            }
+                            if(lineNum<CleanNumber)
+                            {
+                                bw.write(line);
+                            }
+                        }
+                        lineNum++;
                     }
-                    if(lineNum<CleanNumber)
+
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                finally
+                {
+                    try
                     {
-                        bw.write(line);
+                        if (bw != null)
+                        {
+                            bw.close();
+                        }
+                        if (fw != null)
+                        {
+                            fw.close();
+                        }
+                    } catch (IOException ex)
+                    {
+                        ex.printStackTrace();
                     }
+
                 }
-                lineNum++;
+                }
             }
-
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
-                if (bw != null)
-                {
-                    bw.close();
-                }
-                if (fw != null)
-                {
-                    fw.close();
-                }
-            } catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
-
         }
 
+    }
+
+    private String getFileExtension(File file) {
+        String fileName = file.getName();
+        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".")+1);
+        else return "";
     }
 }
