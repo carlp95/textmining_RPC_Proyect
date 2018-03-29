@@ -31,11 +31,11 @@ public class PDFProcesses {
         this.pdDoc = null;
         this.cosDoc = null;
 
-        File directory = new File("resources/papers/");
-        File[] directoryfiles = directory.listFiles();
+        File directory = new File("resources/papers/"); //Directory of the resources
+        File[] directoryfiles = directory.listFiles(); //List of files that are in that directory
 
-        if (directoryfiles != null){
-            for (File child: directoryfiles) {
+        if (directoryfiles != null){ //If the directory have files it can do everything
+            for (File child: directoryfiles) { //files iteration
 
                 BufferedWriter bw = null;
                 FileWriter fw = null;

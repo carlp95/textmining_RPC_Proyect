@@ -1,0 +1,1071 @@
+Incremental Clustering for Mining 
+in a Data Warehousing Environment 
+Martin Ester, Hans-Peter Kriegel, J&g Sander, Michael Wimmer, Xiaowei Xu 
+Institute for Computer Science, University of Munich 
+Oettingenstr. 67, D-80538 Mtinchen, Germany 
+email: {ester I kriegel I sander I wimmerm I xwxu) @informatik.uni-muenchen.de 
+Abstract 
+Data warehouses provide a great deal of opportu- 
+nities for performing data mining tasks such as 
+classification and clustering. Typically, updates 
+are collected and applied to the data warehouse pe- 
+riodically in a batch mode, e.g., during the night. 
+Then, all patterns derived from the warehouse by 
+some data mining algorithm have to be updated as 
+well. Due to the very large size of the databases, it
+is highly desirable to perform these updates incre- 
+mentally. In this paper, we present the first incre- 
+mental clustering algorithm. Our algorithm is 
+based on the clustering algorithmDBSCAN which 
+is applicable to any database containing data from 
+a metric space, e.g., to a spatial database or to a 
+WWW-log database. Due to the density-based na- 
+ture of DBSCAN, the insertion or deletion of an 
+object affects the current clustering only in the 
+neighborhood of this object. Thus, efficient algo- 
+rithms can be given for incremental insertions and 
+deletions to an existing clustering. Based on the 
+formal definition of clusters, it can be proven that 
+the incremental algorithm yields the same result as 
+DBSCAN. A performance evaluation of Incre- 
+mentalDBSCAN on a spatial database as well as 
+on a WWW-log database is presented, demonstrat- 
+ing the efficiency of theproposed algorithm. Incre- 
+mentalDBSCAN yields significant speed-up 
+factors over DBSCAN even for large numbers of 
+daily updates in a data warehouse. 
+1 Introduction 
+Many companies have recognized the strategic impor- 
+tance of the knowledge hidden in their large databases and, 
+Permission to copy withoutfee all orpart of this material is granted 
+provided that the copies are not made or distributed for direct com- 
+Amercial advantage,*the VLDB copyright notice and the title of the 
+publication and its date appean and notice is given that copying is 
+by permission of the Very Large Data Base Endowment. To copy 
+otherwise, or to republish requires afee and/or specialpermission 
+from the Endowment. 
+Proceedings of the 24th VLDB Conference 
+New York, USA, 1998 
+therefore, have built data warehouses. A data warehouse is 
+a collection of data from multiple sources, integrated into a 
+common repository and extended by summary information 
+(such as aggregate views) for the purpose of analysis 
+[MQM 971. When speaking of a data warehousing environ- 
+ment, we do not anticipate any special architecture but we 
+address an environment with the following two characteris- 
+tics: 
+(1) Derived information is present for the purpose of 
+analysis. 
+(2) The environment is dynamic, i.e. many updates 
+occur. 
+In such an environment, either manual analyses support- 
+ed by appropriate visualization tools or (semi)automatic 
+data mining may be performed. Data mining has been de- 
+fined as the application of data analysis and discovery algo- 
+rithms that - under acceptable computational efficiency 
+limitations - produce a particular enumeration of patterns 
+over the data @?PS 961. Several data mining tasks have been 
+identified [FPS 961, e.g., clustering, classification and sum- 
+marization. Typical results of data mining are as follows: 
+Clusters of items which are typically bought together by 
+some set of customers (clustering in a data warehouse 
+storing sales transactions). 
+Symptoms distinguishing disease A from disease B (clas- 
+sification in a medical data warehouse). 
+Description of the typical WWW access patterns (sum- 
+marization in the data warehouse of an internet provider). 
+The task considered in this paper is clustering [KR 903, 
+i.e. grouping the objects of a database into meaningful sub- 
+classes. Recently, several clustering algorithms for mining 
+in large databases have been developed [NH 941, [ZRL 961, 
+[EKSX 961. 
+Typically, a data warehouse is not updated immediately 
+when insertions and deletions on the operational databases 
+occur. Updates are collected and applied to the data ware- 
+house periodically in a batch mode, e.g., each night 
+[MQM 971. Then, all patterns derived from the warehouse 
+by data mining algorithms have to be updated as well. This 
+update must be efficient enough to be finished when the 
+warehouse has to be available for users again, e.g., the next 
+morning. Due to the very large size of the databases, it is 
+highly desirable to perform these updates incrementally 
+([FAAM 971, [Huy 97]), so as to consider only the old clus- 
+323 
+ters and the objects inserted or deleted during the day, in- 
+stead of applying the clustering algorithm to the (very large) 
+updated database. 
+Maintenance of derived information such as views and 
+summary tables has been an active area of research 
+[MQM 971, [Huy 971. The problem of incrementally updat- 
+ing mined patterns on changes of the database, however, 
+has just recently started to receive more investigation. 
+[CHNW 961 and [FAAM 973 propose efficient methods for 
+incrementally modifying a set of association rules mined 
+from a database. [EW 981 introduces generalization algo- 
+rithms for incremental summarization in a data warehous- 
+ing environment. 
+In this paper, we present the first incremental clustering 
+algorithm. Our algorithm is based on DBSCAN 
+[EKSX 961, [SEKX 983 which is an efficient clustering al- 
+gorithm for metric databases (that is, databases with a dis- 
+tance function for pairs of objects) for mining in a data 
+warehousing environment. Due to the density-based nature 
+of DBSCAN, the insertion or deletion of an object affects 
+the current clustering only in the neighborhood of this ob- 
+ject. We demonstrate the high efficiency of incremental 
+clustering on a spatial database [Gue 941 as well as on a 
+WWW access log database [MJHS 961. 
+The rest of this paper is organized as follows. We discuss 
+related work on clustering algorithms in section 2. In 
+section 3, we briefly introduce the clustering algorithm DB- 
+SCAN. The algorithms for incrementally updating a clus- 
+tering on insertions and deletions of the database are pre- 
+sented in section 4 and an extensive performance 
+evaluation is reported in section 5. Section 6 concludes 
+with a summary and some directions for future research. 
+2 Related Work 
+The problem of incrementally updating mined patterns 
+after making changes to the database has just recently start- 
+ed to receive more attention. 
+The task of mining association rules has been introduced 
+by [AS 941. An association rule is a rule I, 3 I2 where I1 
+and Z2 are disjoint subsets of a set of items I. For a given da- 
+tabase DB of transactions (i.e. each record contains a set of 
+items bought by some customer in one transaction), all as- 
+sociation rules should be discovered having a support of at 
+least minsupport and a confidence of at least minconfidence 
+in DB. The subsets of Z that have at least minsupport in DB 
+are calledfrequent sets. 
+[FAAM 971 describes two typical scenarios for mining 
+association rules in a dynamic database. For example, in a 
+medical database, one may seek associations between treat- 
+ments and results. The database is constantly updated and at 
+any given time, the medical researcher is interested in ob- 
+taining the current associations. In a database containing 
+news articles, e.g., patterns of co-occurrence amongst the 
+topics of articles may be of interest. An economic analyst 
+receives a lot of new articles every day and he would like to 
+find relevant associations based on all current articles. 
+[CHNW 961 proposes to apply a non-incremental algo- 
+rithm for mining association rules to the newly inserted da- 
+tabaseobjects, i.e. to theincrement of the database, and then 
+to combine the frequent sets of both the database and the in- 
+crement. The incremental algorithms presented in 
+[FAAM 971 are based on information about the frequency 
+of attribute pairs and border sets respectively. While the 
+space overhead for keeping track of these frequencies is 
+small, the incremental algorithms yield a speed-up of sever- 
+al orders of magnitude compared to the non-incremental al- 
+gorithm. 
+Summarization, e.g., by generalization, is another impor- 
+tant task of data mining. Attribute-oriented generalization 
+[HCC 931 of a relation is the process of replacing the at- 
+tribute values by a more general value, one attribute at a 
+time, until the number of tuples of the relation becomes less 
+than a specified threshold. The more general value is taken 
+from a concept hierarchy which is typically available for 
+most attributes in a data warehouse. 
+[EW 981 presents algorithms for incremental attribute- 
+oriented generalization with the conflicting goals of good 
+efficiency and minimal overly generalization. The algo- 
+rithms for incremental insertions and deletions are based on 
+the materialization of a relation at an intermediate generali- 
+zation level, i.e. the anchor relation. Experiments demon- 
+strate that incremental generalization can be performed ef- 
+ficiently at a low degree of overly generalization. 
+This paper focuses on the data mining task of clustering 
+and, in the following, wereview clustering algorithms from 
+a data mining perspective. 
+Partitioning algorithms construct a partition of a data- 
+base DB of n objects into a set of k clusters where k is an in- 
+put parameter. Each cluster is represented by the center of 
+gravity of the cluster (k-means) or by one of the objects of 
+the cluster located near its center (k-medoid) [KR 901 and 
+each object is assigned to the cluster with its representative 
+closest to the considered object. Typically, partitioning al- 
+gorithms start with an initial partition of DB and then use an 
+iterative control strategy to optimize the clustering quality, 
+e.g., the average distance of an object to its representative. 
+[NH 941 explores partitioning algorithms for mining in 
+spatial databases. An algorithm called CLARANS (Cluster- 
+ing Large Applications based on RANdomized Search) is 
+introduced which is more effective and more efficient than 
+previous partitioning algorithms. 
+Hierarchical algorithms create a hierarchical decomposi- 
+tion of DB. The hierarchical decomposition is represented 
+by a dendrogram, a tree that iteratively splits DB into small- 
+er subsets until each subset consists of only one object. In 
+such a hierarchy, each level of the tree represents a cluster- 
+ing of DB. 
+The basic hierarchical clustering algorithm works as fol- 
+lows ([Sib 731, [Bou 961). Initially, each object is placed in 
+a unique cluster. For each pair of clusters, some value of 
+dissimliarity or distance is computed. For instance, the dis- 
+tance may be the minimum distance of all pairs of points 
+from the two clusters (single-link method). [Bou 961 dis- 
+cusses alternative definitions of the distance and shows 
+that, in general, no one approach outperforms any other in 
+terms of clustering quality. In every step, the clusters with 
+the minimum distance in the current clustering are merged 
+until all points are contained in one cluster. 
+324 
+None of the above algorithms is efficient on large data- objects D, denoted asp >D q, if there is a chain of objects 
+bases. Therefore, some focusing techniques have been pro- Pl, *a-, p,,, p1 = q, p,, = p such that pi E D and pi+1 is directly 
+posed to increase the efficiency of clustering algorithms. density-reachable frompiwrt. Eps and MinPts. 
+[EKX 951 presents an R*-tree based focusing technique 
+(1) creating a sample of the database that is drawn from 
+each R*-tree data page and (2) applying the clustering algo- 
+rithm only to that sample. [ZRL 961 proposes a special data 
+structure to condense information about subclusters of 
+points. A Clustering Feature (CF) is a triple that contains 
+the number of points, the linear sum and the square sum of 
+all points in the cluster. Clustering features are organized in 
+a height balanced tree, i.e. the CF-tree. BIRCH (Balanced 
+Iterative Reducing and Clustering using Hierarchies) 
+[ZRL 961 is a CF-tree based multiphase clustering method. 
+First, the database is scanned to build an initial in-memory 
+CF-tree. In an optional second phase, this CF-tree can be 
+further reduced until a desired number of leaf nodes is 
+reached. In phase 3 an arbitrary clustering algorithm is used 
+to cluster the CF-values stored in the leaf nodes of the CF- 
+tree. Note that the CF-tree is an incremental structure but 
+phase 3 of BIRCH is non-incremental. 
+Density-reachability is a canonical extension of direct 
+density-reachability. This relation is transitive, but it is not 
+symmetric. Although not symmetric in general, it is obvi- 
+ous that density-reachability is symmetric for objects o with 
+Card(N&o)) > MinPts. Two “border objects” of a cluster 
+are possibly not density-reachable from each other because 
+there are not enough objects in their Eps-neighborhoods. 
+However, there must be a third object in the cluster from 
+which both “border objects” are density-reachable. There- 
+fore, we introduce the notion of density-connectivity. 
+Definition 3: (density-connected) An objcctp is density- 
+connected to an object q wrt. Eps and MinPts in the set of 
+objects D if there is an object o ED such that both p and q 
+are density-reachable from o wrt. Eps and MinPts in D. 
+Recently, a new type of single scan clustering algorithms 
+has been introduced. The basic i&a of a single scan algo- 
+rithm is to group neighboring objects of the database into 
+clusters based on a local cluster condition, thus performing 
+only one scan through the database. Single scan clustering 
+algorithms are very efficient if the retrieval of the neighbor- 
+hood of an object is efficiently supported by the DBMS. 
+Different cluster conditions yield different cluster defini- 
+tions and algorithms. For instance, DBSCAN (Density 
+Based Spatial Clustering of Applications with Noise) 
+[EKSX 961 [SEKX 981 relies on a density-based notion of 
+clusters. 
+Density-connectivity is a symmetric relation. Figure 1 il- 
+lustrates the definitions on a sample database of objects 
+from a 2dirnensional vector space. Note however, that the 
+above definitions only require a distance measure and will 
+also apply to data from a metric space. 
+I rib p density-reachable from q 
+not density-reachable from p 
+0 0 
+a. 
+0 l 
+. 
+* 
+Figure 1: : density-reachability and density-connectivity 
+We use DBSCAN as a base for our incremental clustering 
+algorithm due to the following reasons. First, DBSCAN is 
+one of the most efficient algorithms on large databases. Sec- 
+ond, whereas BIRCH is applicable only to spatial databases 
+(Euclidean vector space), DBSCAN can be applied to any 
+database containing data from a metric space (only assum- 
+ing a distance function). 
+3 The Algorithm DBSCAN 
+The key idea of density-based clustering is that for each 
+object of a cluster the neighborhood of a given radius (Eps) 
+has to contain at least a minimum number of objects 
+(MinPts), i.e. the cardinality of the neighborhood has to ex- 
+ceed some threshold. 
+A cluster is defined as a set of density-connected objects 
+which is maximal wrt. density-reachability and the noise is 
+the set of objects not contained in any cluster. 
+Definition 4: (cluster) Let D be a set of objects. A cluster 
+C wrt. Eps and MinPts in D is a non-empty subset of D sat- 
+isfying the following conditions: 
+1) Maximality: Vp,q E D: ifp E C and q >bp wrt. Eps and 
+MinPts, then also q E C. 
+2) Connectivity: Vp,q E C: p is density-connected to q 
+wrt. Eps and MinPts in D. 
+Definition 5: (noise) Let C, ,. . ., C, be the clusters wrt. 
+Eps and MinPts in D. Then, we define the noise as the set of 
+objects in the database D not belonging to any cluster Ci , 
+i.e.noise= (pEDIVi:pPCi). 
+We will first give a short introduction to DBSCAN in- 
+cluding the definitions which are required for incremental 
+clustering. For a detailed presentation of DBSCAN see 
+[EKSX 961. 
+Definition 1: (directly density-reachable) An object p is 
+directly density-reachable from an object q wrt. Eps and 
+MinPts in the set of objects D if 
+1) p E N+(q) (NE,(q) is the subset of D contained in the 
+Eps-neighborhood of q.) 
+2) Card(N&q)) 5 MinPts. 
+We omit the term “wrt. Eps and MinPts” in the following 
+whenever it is clear from the context. There are two differ- 
+ent kinds of objects in a clustering: core objects (satisfying 
+condition 2 of definition 1) and non-core objects (other- 
+wise). In the following, we will refer to this characteristic of 
+an object as the core objectproperty of the object. The non- 
+core objects in turn are either border objects (not a core ob- 
+ject but density-reachable from another core object) or 
+noise objects (not a core object and not density-reachable 
+from other objects). 
+Definition 2: (density-reachable) An object p is density- 
+reachable from an object q wrt. Eps and MinPts in the set of 
+The algorithm DBSCAN was designed to efficiently dis- 
+cover the clusters and the noise in a database according to 
+325 
+the above definitions. The procedure for finding a cluster is 
+based on the fact that a cluster is uniquely determined by 
+any of its core objects: 
+l First, given an arbitrary objectp for which the core object 
+condition holds, the set {o I o >op} of all objects o den- 
+sity-reachable from p in D forms a complete cluster C 
+andpe C. 
+l Second, given a cluster C and an arbitrary core objectp E 
+C, C in turn equals the set {o I o >pp) (c.f. lemma 1 and 
+2 in [EKSX 961). 
+To find a cluster, DBSCAN starts with an arbitrary object 
+p in D and retrieves all objects of D density-reachable from 
+p with respect to Eps and MinPfs. If p is a core object, this 
+procedure yields a cluster with respect to Eps and MinPts. If 
+p is a border object, no objects are density-reachablefromp 
+and p is assigned to the noise. Then, DBSCAN visits the 
+next object of the database D. 
+The retrieval of density-reachable objects is performed 
+by successive region queries. A region query returns all ob- 
+jects intersecting a specified query region. Such queries are 
+supported efficiently by spatial access methods such as R*- 
+trees [BKSS 903 for data from a vector space or M-trees 
+[CPZ 971 for data from a metric space. 
+The algorithm DBSCAN is sketched in figure 2. 
+Ugorithm DBSCAN (D, Eps, MinPts) 
+/Precondition: All objects in D are unclassified. 
+FORALL objects o in D DO: 
+IF o is unclassified 
+call function expand-cluster to construct a cluster wrt 
+Eps andMinPts containing o. 
+JUNCTION expand-cluster (a D, Eps, MinPts): 
+retrieve the Eps-neighborhood N,,,(o) of o; 
+IF I N,,,(o) I < MinPts //i.e. o is not a core object 
+mark o as noise and RETURN; 
+ELSE//i. e. o is a core object 
+select a new cluster-id and mark all objects in N&o) 
+with this current cluster-id; 
+push all objects from N,,,(o)vo} onto the stack seeds; 
+WHILE NOT seea!s.empty() DO 
+currentobject := seeds.top(); 
+retrieve the Eps-neighborhood N,,,(currentObject) 
+of currentobject; 
+IF I N,&currentObject) I 2 MinPts 
+select all objects in N,,,(currentObject) not yet 
+classt$ed or are marked as noise, 
+push the unclassi$ed objects onto seeds 
+and mark all of these objects with current 
+cluster-id: 
+seeds.pop(); 
+RETURN 
+Figure 2: : Algorithm DBSCAN 
+4 IncrementalDBSCAN 
+DBSCAN, as introduced in [EKSX 961, is applied to a 
+static database. In a data warehouse, however, the databases 
+may have frequent updates and thus may be rather dynamic. 
+For example, in a WWW access log database, we may want 
+to find and monitor groups of similar access patterns by 
+clustering the access sequences of different users. These 
+patterns may change over time because each day new log- 
+entries are added to the database and old entries (past a user- 
+supplied expiration date) are deleted. After insertions and 
+deletions to the database, the clustering discovered by 
+DBSCAN has to be updated. In section 4.1, we examine 
+which part of an existing clustering is affected by an update 
+of the database. We present algorithms for incremental up- 
+dates of a clustering after insertions (section 4.2) and dele- 
+tions (section 4.3). Based on the formal notion of clusters, it 
+can be proven that the incremental algorithm yields the 
+same result as the non-incremental DBSCAN algorithm. 
+This is an important advantage of our approach. 
+4.1 Affected Objects 
+We want to show that changes of some clustering of a da- 
+tabase D are restricted to a neighborhood of an inserted or 
+deleted object p. Objects contained in NE,S(p) can change 
+their core object property, i.e. core objects may become 
+non-core objects and vice versa. The objects contained in 
+N,,(p) \ N,,,(p) keep their core object property, but non- 
+core objects may change their connection status, i.e. border 
+objects may become noise objects or vice versa, because 
+their Eps-neighborhood may contain objects with a 
+changed core object property. For all objects outside of 
+N2&p), it holds that neither these objects themselves nor 
+objects in their Eps-neighborhood change their core object 
+property. Therefore, the connection status of these objects is 
+unchanged. 
+After the insertion of some object p, non-core objects 
+(border objects or noise objects) in N,,,(p) may become 
+core objects implying that new density connections may be 
+established, i.e. chains pl, . . . . p,,, p1 = r, pn = s with pi+1 di- 
+rectly density-reachable fromp, for two objects r and s may 
+arise which were not density-reachable from each other be- 
+fore the insertion. Then, one of thep,for i < n must be con- 
+tained in N&p). 
+When deleting some objectp, core objects in N&p) may 
+become non-core objects implying that density connections 
+may be removed, i.e. there may no longer be a chain 
+Pip -*et Pn, Pl = r, p,, = s with pi+l directly density-reachable 
+from pi for two objects r and s which were density-reach- 
+able from each other before the deletion. Again, one of the 
+pi for i < n must be contained in N,,,(p). 
+Figure 3 illustrates our discussion using a sample data- 
+base of 2D objects and an objectp to be inserted or to be de- 
+leted. The objects a and b are density connected wrt. Eps as 
+depicted and MinPts = 4 without using one of the elements 
+of N,,,(p). Therefore, a and b belong to the same cluster in- 
+dependently from p. On the other hand, the objects d and e 
+in D \ N,,,(p) are only density-connected via c in N,,,(p) if 
+326 
+the object p is present, so that the cluster membership of d 
+and e is affected by p. . . 
+l 
+a*.‘. 
+l 0. b .* . . l ,.$::g:;:.:.. . ,,::.:.:(.:::~r. .$p&$g 4 ‘,f e l .:::.: ‘.::;:jj::.. l * . . . . ..., . . . . . . . 
+. 
+. . . . 
+. 
+.**.. 
+l . 
+. :*y 1.:” 
+. 
+. : 
+-I 
+Figure 3: : Affected objects in a sample database 
+In general, on an insertion or deletion of an object p, the 
+set of ufSec?ed objects, i.e. objects which may potentially 
+change cluster membership after the update, is the set of ob- 
+jects in N&&p) plus all objects density-reachable from one 
+of these objects in D u {p). The cluster membership of all 
+other objects not in the set of uffecred objects will not 
+change. This is the intuition of the following definition and 
+lemma. In particular, the lemma states that a cluster c in the 
+database is independent of an insertion or deletion of an ob- 
+jectp if a core object of the cluster is outside the set Affect- 
+ed,(p). Note that a cluster is uniquely determined by any of 
+its core objects. Therefore, by definition of Affected,(p) it 
+follows that if one core object of a cluster is outside (inside) 
+Af/ected,(p) then all core objects of the cluster are outside 
+(inside) the set Affected,(p). 
+Definition 6: (affected objects) Let D be a database of ob- 
+jects andp be some object (either in or not in 0). We define 
+the set of objects in D affected by the insertion or deletion 
+ofp as 
+Afhc~edDtp) = NEJPJ LJ Iq 13 o E N.,&P) A q >Du(p) 01. 
+Lemma 1: Let D be a set of objects andp be some object. 
+Then ‘v’ o E D: o P Aficfed,(p) * (q I q >n,kl o) = {q I q 
+>Dv(~}~}* 
+Proof (sketch): 1) c : because D \ {p} c D u {p]. 2) 2 : 
+if q E {q I q >ouIpI o), then there issome chain q!, . . . . q,,, q1 
+= o, qn = q, qi+l E N,,,(qJ and qiis a core object m D u Ip] 
+for all i < n and, for all i, it holds that qi >ovlP1 o. Because 
+qi is a core object for all i < n and density-reachability is 
+symmetric for core objects, it also holds that o >ovtPl q+ If 
+there existed an i < n such that qi E N,,,(p), then qi >oVtp) p 
+implying also 0 >ov(pl p due to the transitivity of density- 
+reachability. By defimtion of the set AfSected,(p) it now fol- 
+lows that o ~Affec?ed,(p), in contrast to the assumption. 
+Thus, qi GG N,,,(p) for all i < n implying that all the objects 
+qi, i < n, are core objects independent of p and also qn # p 
+because otherwise qnel E N,,,(p). Thus, the chain 41, . . . . qn 
+exists also in the set D \ (p} and then q E (q I q >o, w 0). Q 
+Due to lemma 1, after inserting or deleting an object p, it 
+is sufficient to reapply DBSCAN to the set Affected,(p) in 
+order to update the clustering. For that purpose, however, it 
+is not necessary to retrieve the set first and then apply the 
+clustering algorithm. We simply have to start a restricted 
+version of DBSCAN which does not loop over the whole 
+database to start expanding a cluster but only over certain 
+“seed’‘-objects which are all located in the neighborhood of 
+p. These “seed’‘-objects arecore objects after the update op- 
+eration which arelocated in the Eps-neighborhood of a core 
+object in D u (p} which in turn is located in N,,,(p). This is 
+the content of the next lemma. 
+Lemma 2: Let D be a set of objects. Additionally, let 
+D*=D u (p} after insertion of an objectp or D*=D \ (p) af- 
+ter deletion of p and let c be a core object in D’. 
+C = {o I o >D* c) is a cluster in D’ and C c AfSected,(p) w 
+3 p q’: q E N,&q’), q’ E NE ip), c +,* q, q is core object in 
+D and q’ is core object in fi u (p). 
+Proof (sketch): If D* = D u (p} or c E N&p), the lemma 
+is obvious by definition of Affected,(p). Therefore, we con- 
+sider only the case D* = D \ {p} and c e N,+,,(p). 
+“=>“: C G Affcm?dD(p) and C # 0. Then, there exists 
+0 E N,,,(P) and c >Du(pJ o, i.e. there is a chain of directly 
+density-reachable objects from o to c. Now, because 
+c p: NE ,(p) we can construct a chain o=ol, . . ., on=c, 
+Oi+l EnP EPs(o,) with the property that there is j I n such that 
+for all k, j 5 k I n, ok rz N,,,(p) and for all k, l< k< j, 
+Ok E NEJP~P,. Then q’oj f N qd s(o.-l), q’=oj-1 ENEMY, C >D* O., Oj is a core object ul D an
+D u IP~. 
+Oj-1 is a core object in 
+-<=y obviously, C = (0 I 0 >D* c} iS a Cluster (see the com- 
+ments on the algorithm after definition 5). By assumption, c 
+is density-reachable from a core object q in D* and q is den- 
+sity-reachable from an object q’E NE,,(p) in D u {p]. Then 
+also c and hence all objects in C are density-reachable from 
+q’ in D u {p). Thus, C c Aficted,(p).U 
+Due to lemma 2, the general strategy for updating a clus- 
+tering would be to start the DBSCAN algorithm only with 
+core objects that are in the Eps-neighborhood of a (previ- 
+ous) core object in N&p). However, it is not necessary to 
+rediscover density-connections which are known from the 
+previous clustering and which are not changed by the up- 
+date operation. For that purpose, we only need to look at 
+core objects in the Eps-neighborhood of those objects that 
+change their core object property as aresult of the update. In 
+case of an insertion, these objects may be connected after 
+the insertion. In case of a deletion, density connections be- 
+tween them may be lost. In general, this information can be 
+determined by using very few region queries. The remain- 
+ing information needed to adjust the clustering can be de- 
+rived from the cluster membership before the update. Defi- 
+nition 7 introduces the formal notions which are necessary 
+to describe this approach. Remember: objects with a 
+changed core object property are all located in N,,,(p): 
+Definition 7: (seed objects for the update) Let D be a set 
+of objects andp be an object to be inserted or deleted. Then, 
+we define the following notions: 
+UpdSeedI,, = {q I q is a core object in D u {p), 
+!lq’:q’iscoreobjectinDu(p}butnotinD 
+and q E &Jq’) I 
+Upo3eedDe1 = {q I q is a core object in D \ (p}, 
+3 q’: q’ is core object in D but not in D \ (p) 
+and q E NEpdq’) 1 
+We call the objects q E UpdSeed “seed objects for the up- 
+date”. Note that these sets can be computed rather efficient- 
+ly if we additionally store for each object the number of ob- 
+327 
+jects in its neighborhood when initially clustering the 
+database. Then, we need only to perform a single region 
+query for the object p to be inserted or deleted to detect all 
+objects q’ with a changed core object property (i.e. objects 
+in N,,,(p) with number = MinPts-1 in case of an insertion, 
+objects in N,,,(p) with number = MinPts in case of a dele- 
+tion). Only for these objects q’ (if there are any) do we have 
+to retrieve N&q’) to determine all objects q in the set 
+UpdSeed. Since at this point of time the Eps-neighborhood 
+ofp is still in main memory we first check this set for neigh- 
+bors of q’ and perform an additional region query only if 
+there are more objects in the neighborhood of q’ than al- 
+ready contained in N&p). Our experiments, however, in- 
+dicate that objects with a changed core object property after 
+an update (different from the inserted or deleted object p) 
+are not very frequent (see section 5). Therefore, in most cas- 
+es we just have to perform the Eps-neighborhood query for 
+p and to change the counter for the number of objects in the 
+neighborhood of the retrieved objects. 
+4.2 Insertions 
+When inserting a new objectp, new density-connections 
+may be established, but none are removed. In this case, it is 
+sufficient to restrict the application of the clustering proce- 
+dure to the set Upd+Seedh$. If we have to change cluster 
+membership for an object from C to D we perform the same 
+change of cluster membership for all other objects in C. 
+Changing cluster membership of these objects does not in- 
+volve the application of the clustering algorithm but can be 
+handled by simply storing the information about which 
+clusters have been merged. 
+When inserting an object p into the database D, we can 
+distinguish the following cases: 
+(1) (Noise) 
+UpdSeedI,, is empty, i.e. there are no “new” core objects af- 
+ter insertion ofp. Then, p is a noise object and nothing else 
+is changed. 
+(2) (Creation) 
+UpdSeedl,, contains only core objects which did not belong 
+to a cluster before the insertion ofp, i.e. they were noise ob- 
+jects or equal top, and a new cluster containing these noise 
+objects as well asp is created. 
+(3) (Absorption) 
+UpdSeedI,, contains core objects which were members of 
+exactly one cluster C before the insertion. The objectp and 
+possibly some noise objects are absorbed into cluster C. 
+(4) (Merge) 
+UpdSeedI,, contains core objects which were members of 
+several clusters before the insertion. All these clusters and 
+the objectp are merged into one cluster. 
+Figure 4 illustrates the most simple forms of the different 
+cases when inserting an object p into a sample database of 
+2D points, using parameters Eps as depicted and MinPts=3. 
+case 1: noise case 2: creation 
+,.,:;;;i’l’~& ; :*:~ :::$;<<:y~:.. . . . *::::::::::.::;:i:. :.:.:...... x::.:.:.:.:. .~~~~~ l *:: ~~ jjj:.:.:.&:.:.:.l. :‘iii~~~~~~~ 
+* 
+- . 
+: 2. 
+case 3: absorption case 4: merge -I 
+Figure 4: : The different cases of the insertion algorithm 
+Figure 5 presents a more complicated example of merg- 
+ing clusters when inserting an objectp. In this example the 
+value for Eps is as depicted and MinPts = 6. Then, the in- 
+serted point p is not a core object, but ol, 02, 03 and 04 are 
+core objects after the update. The previous clustering can be 
+adapted by analyzing only the Eps-neighborhood of these 
+objects: cluster A is merged with cluster B and C because o1 
+and 04 as well as o2 and 03 are mutual directly density- 
+reachable, implying the merge of B and C. The changing of 
+cluster membership for objects in case of merging clusters 
+can be done very efficiently by simply storing the informa- 
+tion about the clusters that have been merged. Note that this 
+kind of “transitive” merging can only occur if MinPts is 
+larger than 5, because otherwisep would be a core object 
+and then all objects in N,,,(p) would already be density- 
+reachable fromp. 
+. 
+1 A 1 
+1 4 -, 
+l B 
+. 
+. 
+= . . C . . . . 
+..’ . 
+. . . . 
+. o objects from cluster! 
+A A objects from cluster E 
+. q objects from cluster C 
+i 
+I. 
+Figure 5: : “Transitive” merging of clusters A, B, C by the 
+insertion algorithm 
+328 
+43 Deletions 
+As opposed to an insertion, when deleting an object p, 
+density-connections may be removed, but no new connec- 
+tions are established. ‘Ihe difficult case for deletion occurs 
+when the cluster C of p is no longer density-connected via 
+(previous) core objects in N&p) after deleting p. In this 
+case, we do not know in general how many objects we have 
+to check before it can be determined whether C has to be 
+split or not. In most cases, however, this set of objects is 
+very small because the split of a cluster is not very frequent 
+and in general a non-split situation will be detected in a 
+small neighborhood of the deleted objectp. 
+When deleting an object p from the database D we can 
+distinguish the following cases: 
+(1) (Removal) 
+UpdSeedDel is empty, i.e. there are no core objects in the 
+neighborhood of objects that may have lost their core object 
+property after the deletion of p. Then p is deleted from D 
+and eventually other objects in N&*(p) change from a 
+former cluster C to noise. If this happens, the cluster C is 
+completely removed because then C cannot have core ob- 
+jects outside of NEps(p). 
+(2) (Reduction) 
+All objects in UpdSee&., are directly density-reachable 
+from each other. Thenp is deleted from D and some objects 
+in N&,(p) may become noise. 
+(3) (potential Split) 
+The objects in UpdSeedD,l are not directly density-reach- 
+able from each other. These objects belonged to exactly one 
+cluster C before the deletion of p. Now we have to check 
+whether or not these objects are density-connected by other 
+objects in the former cluster C. Depending on the existence 
+of such density-connections, we can distinguish a split and 
+a non-split situation. 
+Figure 6 illustrates the different cases when deleting p 
+from a sample database of 2D points using parameters Eps 
+as depicted and MinPts = 3. Note that the situations de- 
+scribed in case 3 may occur simultaneously. 
+case 1: removal case 2: reduction 
+, split ,split 
+case 3: split case 3: split and no split 
+Figure 6: : The different cases of the deletion algorithm 
+If case (3) occurs, then the clustering procedure must also 
+consider objects outside of UpdSeedDel, but it stops in case 
+of a non-split situation as soon as the objects from the set 
+UpdSee&,l are density-connected to each other. 
+Case (3) is implemented by a procedure similar to the 
+function enpand&mer in algorithm DBSCAN (see 
+figure 2) starting in parallel from the elements of the set 
+UpdSeedDel. The main difference is that the candidates for 
+further expansion are managed in a queue instead of a stack. 
+Thus, a breadth-first search for the missing density-connec- 
+tions is performed which is more efficient than a depth-first 
+search due to the following reasons: 
+l In a non-split situation, we stop as soon as all members of 
+UpdSeedDel are found to be density-connected to each 
+other. The breadth-first search implies that density-con- 
+nections with the minimum number of objects (requiring 
+the minimum number of region queries) are detected 
+first. 
+l A split situation is in general the more expensive case be- 
+cause theparts of the cluster to be split actually have to be 
+discovered. The algorithm stops when all but the last part 
+have been visited. Usually, a cluster is split only into two 
+parts and one of them is relatively small. Using breadth- 
+first search we only have to visit the smaller part and a 
+small percentage of the larger one. 
+5 Performance Evaluation 
+In this section, we evaluate the efficiency of Incremen- 
+ta.lDBSCAN versus DBSCAN. We present an experimental 
+evaluation using a 2D spatial database as well as a WWW 
+access log database. For this purpose, we implemented both 
+algorithms in C++ based on implementations of the R*-tree 
+[BKSS 901 (for the 2D spatial database) and the M-tree 
+[CPZ 971 (for the WWW log database) respectively. Fur- 
+thermore, we present an analytical comparison of both al- 
+gorithms and &rive the speed-up factors for typical param- 
+eter values depending on the database size and the number 
+of updates. 
+For the first set of experiments, we used a synthetic data- 
+base of 1 ,OOO,OOO 2D points with k = 40 clusters of similar 
+sizes. 21.7% of all points are noise, uniformly distributed 
+outside of the clusters, and all other points are uniformly 
+distributed inside the clusters with a significantly higher 
+density than the noise. In this database, the goal of cluster- 
+ing is to discover groups of neighboring objects. A typical 
+real world application for this type of database is clustering 
+earthquake epicenters stored in an earthquake catalog. 
+Earthquake epicenters occur along seismically active faults, 
+and are measured with some errors, so that over time ob- 
+served earthquake epicenters should be clustered along 
+such seismic faults [AF 961. 
+In this type of application, there are only insertions. The 
+Euclidean distance was used as distance function and an 
+R*-tree [BKSS 901 as an in&x structure. Eps was set to 
+4.48 and MinPfs was set to 30. Note that the MinPts value 
+had to be rather large due to the high percentage of noise. 
+We performed experiments on several other synthetic 2D 
+databases with n varying from 100,000 to 1,000,000, k 
+varying from 7 to 40 and with the noise percentage varying 
+from 10% up to 20%. Since we always obtained similar re- 
+sults, we restrict the discussion to the above database. 
+329 
+romblon.informatik.uni-muenchende lopa - [04/Mar/l997:01:44:50 +OlOOJ “GET /-lopa/ HTTP/1.0” 200 1364 
+romblon.informatik.uni-muenchendelopa - [04/Mar/1997:01:45:11 +OlOO] “GET/-lops/x/HTTP/1.0” 200 712 
+fixer.sega.co.jp unknown - [04Nar/1997:01:58:49 +OlOO] “GET /dbs/porada.html HTTP/1.0” 200 1229 
+scooter.pa-x.dec.com unknown - [04/h&~/1997:02:08:23 +OlOO] “GET /dbs/kriegel-e.html HTTP/1.0” 200 1241 
+Figure 7: : Sample WWW access log entries 
+For the second set of experiments, we used a WWW ac- 
+cess log database of the Institute for Computer Science of 
+the University of Munich. This database contains 1,400,OOO 
+entries following the Common Log Format specified as part 
+of the HTTP protocol [Luo 951. Figure 7 depicts some sam- 
+ple log entries. 
+All log entries with identical IP address and user id within 
+a given maximum time gap are grouped into a session and 
+redundant entries, i.e. entries with filename suffixes such as 
+“gif ‘, “jpeg”, and “jpg” are removed [MJHS 961. A session 
+has the following structure: 
+session: = <ip-address, user-id, [urlr, . . ., url,]> 
+In this application, the goal of clustering is to discover 
+groups of similar sessions. A WWW provider may use the 
+discovered clusters as follows: 
+l The users associated with the sessions of a cluster form 
+some kind of user group which may be used to develop 
+marketing strategies. 
+l The URLs of the sessions contained in a cluster seem to 
+be logically correlated and should be made easily acces- 
+sible from each other via appropriate links. 
+Entries are deleted from the WWW access log database 
+after six months. Assuming a constant daily number of 
+WWW accesses, the numbers of insertions and deletions 
+are the same. We used the following distance function for 
+pairs of sessions sl and s2 : 
+dist(s,, s2) = 
+CardinaZity(s,\s,) + Cardinality(s,\sI) 
+Cardinality(s,) + CardinaZity(s2) 
+The domain of dist is the interval [0 . . 11, dist(s,s) = 0, dist 
+is symmetric and it fulfills the triangle inequality. Other dis- 
+tance functions may use the hierarchy of the directories to 
+define the degree of similarity between two URLs. The da- 
+tabase was indexed by an M-tree [CPZ 971. Eps was set to 
+0.4 and MinPts to 2. 
+In the following, we compare the performance of Incre- 
+mentalDBSCAN versus DBSCAN. Typically, the number 
+of page accesses is used as a cost measure for database algo- 
+rithms because the VO time heavily dominates CPU time. 
+In both algorithms, region queries are the only operations 
+requiring page accesses. Since the number of page accesses 
+of a single region query is the same for DBSCAN and for 
+IncrementalDBSCAN, we only have to compare the num- 
+ber of region queries. Thus, we use the number of region 
+queries as the cost measure for our comparison. Note that 
+we are not interested in the absolute performance of the two 
+algorithms but only in their relative performance, i.e. in the 
+speed-up factor as defined below. To validate this approach, 
+we performed a set of experiments on our test databases and 
+found that the experimental speed-up factor always was 
+slightly larger than the analytically derived speed-up factor 
+(experimental value 1.6 times the expected value in all ex- 
+periments). 
+DBSCAN performs exactly one region query for each of 
+the n objects of the database (see algorithm in figure 2), i.e. 
+the cost of DBSCAN for clustering n objects, denoted by 
+Cost,,&n), is 
+The number of region queries performed by Incremen- 
+talDBSCAN depends on the application and, therefore, it 
+must be determined experimentally. In general, a deletion 
+affects more objects than an insertion. Thus, we introduce 
+two parameters rins and rdel denoting the average number of 
+region queries for an incremental insertion resp. deletion. 
+Let& andfdeI denote the percentage of insertions resp. de- 
+letions in the number of all incremental updates. Then, the 
+cost of IncrementalDBSCAN for performing m incremental 
+updates, denoted by CostlncremenrolDBSC(m), is as follows: 
+CoStl~,,,,,,,ralDBSCAN(m) = m X (fini,, X rins +fdez X rdeJ 
+Table 1 lists the parameters of our performance evalua- 
+tion and the values obtained for the 2D spatial as well as for 
+the WWW-log database. To determine the average values 
+330 
+Table 1: Parameters of the performance valuation 
+Meaning 
+I I I 
+n number of database objects 1 ,oOO,OOo 69,000 
+r m 7- ~ number of (incremental) updates --I- varying I varying ~ I 
+rim average number of region queries for an incremental insertion 1.58 1.1 
+rdel average number of region queries for an incremental deletion 6.9 6.6 
+I f de1 I relative frequency of deletions in the number of all updates I 0 I 0.5 I 
+I fins 1 relative frequency of insertions in the number of all updates (l-f& I 1.0 I 0.5 1 
+(ri,,and rdel), the whole databases wereincrementally insert- 
+ed and deleted, although& = 0 for the 2D spatial database. 
+Now, we can calculate the speed-up factor of Incremen- 
+talDBSCAN versus DBSCAN. We define the speed-upfuc- 
+tor as the ratio of the cost of DBSCAN (applied to the data- 
+base after all insertions and deletions) and the cost of m 
+calls of IncrementalDBSCAN (once for each of the inser- 
+tions resp. deletions), i.e.: 
+SpeedupFactor = 
+CosbBsdn +.L x m -fdel x m> 
+COStIncrementalDBSCAN(m) 
+Figure 8 and figure 9 depict the speed-up factors depend- 
+ing on n for several values of m. For relatively small num- 
+bers of daily updates, e.g., m = 1,000 and n = l,OOO,OOO, we 
+obtain speed-up factors of 633 for the 2D spatial database 
+and 260 for the WWW-log database. Even for rather large 
+numbers of daily updates, e.g., m = 25,000 and n = 
+1 ,OOO,OOO, IncrementalDBSCAN yields speed-up factors 
+of 26 and 10 for the 2D spatial as well as for the WWW-log 
+database. 
+0 500,000 1 ,ooo,ooo 1,500,000 2,ooo.ooo 
+size of database (n) 
+Figure 8: : Speed-up factors for 2D spatial database 
+100 
+/ ../” number of 
+60 -- 
+5 
+0 60-- 
+2 
+* 40-- 
+Q 
+20 -- 
+J ..fl ----- -,a’------ updates 
+/.d F( ----- -__-..sl’l---_-----_-5,0~ 
+.I“ - 10,000 A--/ 
+- - - ,d-f - - - - ------/iI - - - 
+*i-l 
+-25,000 
+/‘ 
+-,,50,000 
+/’ 
+.A--’ 
+-+- 100,000 
+0 500,000 1 ,ooo,ooo 1,500,000 2.000.000 
+size of database (n) 
+Figure 9: : Speed-up factors for WWW-log database 
+When setting the speed-up factor to 1.0, we obtain the 
+number of updates (denoted by MaxUpdates) up to which 
+the multiple application of IncrementalDBSCAN for each 
+update is more efficient than the single application of 
+DBSCAN to the whole updated database. Figure 10 depicts 
+the values of MaxUpdates depending on n for fde] values of 
+up to 0.5 which is the maximum value to be expected in 
+most real applications. This figure was derived by setting 
+rins to 1.34 and r&r to 6.75 which are the averages over the 
+respective values obtained for our test databases. Note that 
+- in contrast to the significant differences of other character- 
+istics of the two applications - the differences of both rig, 
+and rdel are rather small indicating that the average values 
+are a realistic choice for many applications. The MaxUp- 
+dates values obtained are much larger than the actual num- 
+bers of daily updates in most real databases. For databases 
+without deletions (that is,& = 0), MaxUpdates is approxi- 
+mately 3 * n, i.e. the cost for 3 * n updates on a database of 
+n objects using IncrementalDBSCAN is the same as the 
+cost of DBSCAN on the updated database containing 4 * n 
+objects. Even in the worst case of fdel = 0.5, MaxUpdates is 
+approximately 0.25 * n. These results clearly emphasize 
+the relevance of incremental clustering. 
+331 
+0 500,000 1.000.000 1,500,000 2,000,000 
+size of database(n) 
+Figure 10: MaxUpdates depending on database size for 
+different relative frequencies of deletions 
+6 Conclusions 
+Data warehouses provide a great deal of opportunities for 
+performing data mining tasks such as classification and 
+clustering. Typically, updates are collected and applied to 
+the data warehouse periodically in a batch mode, e.g., dur- 
+ing the night. Then, all patterns derived from the warehouse 
+by some data mining algorithm have to be updated as well. 
+In this paper, we presented the first incremental cluster- 
+ing algorithm - based on DBSCAN - for mining in a data 
+warehousing environment. DBSCAN requires only a dis- 
+tance function and, therefore, it is applicable to any data- 
+base containing data from a metric space. Due to the densi- 
+ty-based nature of DBSCAN, the insertion or deletion of an 
+object affects the current clustering only in a small neigh- 
+borhood of this object. Thus, efficient algorithms could be 
+given for incremental insertions and deletions to a cluster- 
+ing. Based on the formal definition of clusters, it was prov- 
+en that the incremental algorithm yields the same result as 
+DBSCAN. 
+A performance evaluation of IncrementaIDBSCAN ver- 
+sus DBSCAN using a spatial database as well as a WWW- 
+log database was presented, demonstrating the efficiency of 
+the proposed algorithm. For relatively small numbers of 
+daily updates, e.g., 1,000 updates in a database of size 
+l,OOO,OOO, IncrementalDBSCAN yielded speed-up factors 
+of several hundred. Even for rather large numbers of daily 
+updates, e.g., 25,000 updates in a database of l,OOO,OOO ob- 
+jects, we obtained speed-up factors of more than 10 versus 
+DBSCAN. 
+In this paper, we assumed that the parameter values Eps 
+and MinPts of DBSCAN do not change significantly when 
+inserting and deleting objects. However, there may be ap- 
+plications where this assumption does not hold, i.e. the pa- 
+rameters may change after many updates of the database. In 
+our future work, we plan to investigate this case. In this pa- 
+per, sets of updates areprocessed one at a time without con- 
+sidering the relationships between the single updates. In the 
+future, bulk insertions and deletions will be considered to 
+further improve the efficiency of IncrementalDBSCAN. 
+Acknowledgments 
+We thank Marco Patella for the M-tree implementation 
+and Franz Krojer for providing us with the WWW access 
+log database. 
+References 
+[AS 941 
+[BKSS 901 
+[Bou 961 
+Allard D. and Fraley C.:“Non Parametric 
+Maximum Likelihood Estimation of Features 
+in Saptial Point Process Using Voronoi 
+Tessellation”, Journal of the American 
+Statistical Association, December 1997. [also 
+http://www.stat.washington.edu/tech.reports/ 
+tr293R.psl. 
+Agrawal R., Srikant R.: “Fast Algorithms for 
+Mining Association Rules”, Proc. 20th Int. 
+Conf. on Very Large Data Bases, Santiago, 
+Chile, 1994, pp. 487-499. 
+Beckmann N., Kriegel H.-P., Schneider R., 
+Seeger B.: “The R*-tree: An Efficient and 
+Robust Access Method for Points and 
+Rectangles”, Proc. ACM SIGMOD Int. Conf. 
+on Management of Data, Atlantic City, NJ, 
+1990, pp. 322-331. 
+Bouguettaya A.: “On-Line Clustering”, IEEE 
+Transactions on Knowledge and Data 
+Engineering, Vol. 8, No. 2, 1996, pp. 333-339. 
+[CHNW 961 Cheung D. W., Han J., Ng V. T., Wong Y.: 
+“Maintenance of Discovered Association 
+Rules in Large Databases: An Incremental 
+Technique “, Proc. 12th Int. Conf. on Data 
+Engineering, New Orleans, USA, 1996, 
+pp. 106-l 14. 
+[CPZ 971 
+[EKSX 961 
+[EKX 951 
+332 
+Ciaccia P., Patella M., Zezula P.: “M-tree: An 
+ESficient Access Method for Similarity Search 
+in Metric Spaces”, Proc. 23rd Int. Conf. on 
+Very Large Data Bases, Athens, Greece, 1997, 
+pp. 426-435. 
+Ester M., Kriegel H.-P., Sander J., Xu X.: “A 
+Den&y-Based Algorithm for Discovering 
+Clusters in Large Spatial Databases with 
+Noise”, Proc. 2nd Int. Conf. on Knowledge 
+Discovery and Data Mining, Portland, OR, 
+1996, pp. 226-231. 
+Ester M., Kriegel H.-P., Xu X.: “Knowledge 
+Discovery in Large Spatial Databases: 
+Focusing Techniques for EfJicient Class 
+Identification”, Proc. 4th Int. Symp. on Large 
+Spatial Databases, Portland, ME, 1995, in: 
+Lecture Notes in Computer Science, Vol. 95 1, 
+Springer, 1995, pp. 67-82. 
+[EW 981 Ester M., Wittmann R.: “Zncremenral 
+Generalization for Mining in a Dara 
+Warehousing Environmenr”, Proc. 6th Int. 
+Conf. on Extending Database Technology, 
+Valencia, Spain, 1998, in: Lecture Notes in 
+Computer Science, Vol. 1377, Springer, 1998, 
+pp. 135-152. 
+[FAAM 971 Feldman R., Aumann Y., Amir A., Mannila 
+[FPS 961 
+[Gue 941 
+[HCC 931 
+My 971 
+[KR 901 
+H.: “Efficient Algorirhms for Discovering 
+Frequenr Sets in Zncremenral Databases”, 
+Proc. ACM SIGMOD Workshop on Research 
+Issues on Data Mining and Knowledge 
+Discovery, Tucson, AZ, 1997, pp. 59-66. 
+Fayyad U., Piatetsky-Shapiro G., and Smyth 
+P.: “Knowledge Discovery and Data Mining: 
+Towards a Unifying Framework”, Proc. 2nd 
+Int. Conf. on Knowledge Discovery and Data 
+Mining, Portland, OR, 1996, pp. 82-88. 
+Gueting R. H.: “An Znrroducrion to Sparial 
+D&abase Sysrems”, The VLDB Journal, Vol. 
+3, No. 4, October 1994, pp. 357-399. 
+Han J., Cai Y., Cercone N.: “Data-driven 
+Discovery of Quanrirarive Rules in Relational 
+Darabases “, IEEE Transactions on 
+Knowledge and Data Engineering, Vo1.5, 
+No. 1, 1993, pp. 2940. 
+Huyn N.: “Mulriple-View Self-Mainrenance in 
+Data Warehousing Environmenrs”, Proc. 23rd 
+Int. Conf. on Very Large Data Bases, Athens, 
+Greece, 1997, pp. 26-35. 
+Kaufman L., Rousseeuw P. J.: “Finding 
+Groups in Dara: An Znrroducrion to Cluster 
+Analysis”, John Wiley & Sons, 1990. 
+[Luo 951 Luotonen A.: “The common log file format”, 
+http://www.w3.org/publWWW/, 1995. 
+[MJHS 961 Mombasher B., Jain N., Han E.-H., Srivastava 
+J* . . “Web Mining: Parrent Discovery from 
+World Wide Web Transactions”, Technical 
+Report 96-050, University of Minnesota, 1996. 
+[MQM 971 Mumick I. S., Quass D., Mumick B. S.: 
+“Maintenance of Dara Cubes and Summary 
+Tables in a Warehouse”, Proc. ACM 
+SIGMOD Int. Conf. on Management of Data, 
+1997, pp. 100-l 11. 
+[NH 941 Ng R. T., Han J.: “Eficienr and Eflecrive 
+Clustering Methods for Sparial Data Mining”, 
+Proc. 20th Int. Conf. on Very Large Data 
+Bases, Santiago, Chile, 1994, pp. 144-155. 
+[SEKX 981 Sander J., Ester M., Kriegel H.-P., Xu X.: 
+[Sib 733 
+[ZRL 961 
+“Dens@-Based Clustering in Spatial 
+Darabases: The Algorirhm GDBSCAN and its 
+Applications “, will appear in: Data Mining and 
+Knowledge Discovery, Kluwer Acedemic 
+Publishers, Vol. 2, 1998. 
+Sibson R.: “SLINK: an optimally efficient 
+algorithm for rhe single-link cluster method”, 
+The Computer Journal, Vol. 16, No. 1, 1973, 
+pp. 30-34. 
+Zhang T., Ramakrishnan R., Linvy M.: 
+“BIRCH: An Efficienr Data Clustering Merhod 
+for Very Large Databases”, Proc. ACM 
+SIGMOD Int. Conf. on Management of Data, 
+1996, pp. 103-l 14. 
+333 
