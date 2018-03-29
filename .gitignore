@@ -3,3 +3,6 @@ weka.xml
 
 #Intellij workspace
 workspace.xml
+
+#out
+out/*
