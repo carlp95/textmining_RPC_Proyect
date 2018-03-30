@@ -165,13 +165,13 @@ public class PDFProcesses {
                     while (scanner.hasNextLine())
                     {
                         line = scanner.nextLine();
-                        if(line.contains("Abstract") || line.contains("abstract"))
+                        if(line.contains("Abstract") || line.contains("abstract") || line.contains("ABSTRACT"))
                         {
                             bool=true;
                         }
                         if(bool)
                         {
-                            if (line.contains("introduction") || line.contains("Introduction"))
+                            if (line.contains("introduction") || line.contains("Introduction") || line.contains("INTRODUCTION"))
                             {
                                 CleanNumber = lineNum;
                             }
