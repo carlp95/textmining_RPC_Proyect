@@ -79,10 +79,10 @@ public class Classifier {
         fvWekaAttributes.add(attribute2);
         instances = new Instances("Test relation", fvWekaAttributes, 1);
         // Set class index
-        instances.setClassIndex(1);
+        instances.setClassIndex(0);
         // Create and add the instance
         DenseInstance instance = new DenseInstance(2);
-        instance.setValue(attribute1, text);
+        instance.setValue(attribute2, text);
         // Another way to do it:
         // instance.setValue((Attribute)fvWekaAttributes.elementAt(1), text);
         instances.add(instance);

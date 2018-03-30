@@ -49,9 +49,9 @@ public class Trainer {
      */
     public void evaluate() {
         try {
-            trainData.setClassIndex(1);
+            trainData.setClassIndex(0);
             filter = new StringToWordVector();
-            filter.setAttributeIndices("first");
+            filter.setAttributeIndices("last");
             classifier = new FilteredClassifier();
             classifier.setFilter(filter);
             classifier.setClassifier(new NaiveBayes());
@@ -71,9 +71,9 @@ public class Trainer {
      */
     public void learn() {
         try {
-            trainData.setClassIndex(1);
+            trainData.setClassIndex(0);
             filter = new StringToWordVector();
-            filter.setAttributeIndices("first");
+            filter.setAttributeIndices("last");
             classifier = new FilteredClassifier();
             classifier.setFilter(filter);
             classifier.setClassifier(new NaiveBayes());
