@@ -67,10 +67,10 @@ public class Classifier {
     public void makeInstance() {
         // Create the attributes, class and text
         ArrayList<String> fvNominalVal = new ArrayList<>(4);
-        fvNominalVal.add("1");
-        fvNominalVal.add("2");
-        fvNominalVal.add("3");
-        fvNominalVal.add("4");
+        fvNominalVal.add("association");
+        fvNominalVal.add("classification");
+        fvNominalVal.add("clustering");
+        fvNominalVal.add("prediction");
         Attribute attribute1 = new Attribute("class", fvNominalVal);
         Attribute attribute2 = new Attribute("text",(ArrayList<String>) null);
         // Create list of instances with one element
@@ -79,10 +79,10 @@ public class Classifier {
         fvWekaAttributes.add(attribute2);
         instances = new Instances("Test relation", fvWekaAttributes, 1);
         // Set class index
-        instances.setClassIndex(0);
+        instances.setClassIndex(1);
         // Create and add the instance
         DenseInstance instance = new DenseInstance(2);
-        instance.setValue(attribute2, text);
+        instance.setValue(attribute1, text);
         // Another way to do it:
         // instance.setValue((Attribute)fvWekaAttributes.elementAt(1), text);
         instances.add(instance);

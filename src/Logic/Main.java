@@ -1,6 +1,6 @@
 package Logic;
 
-import Visual.MainVisual;
+import Visual.*;
 
 import javax.swing.*;
 import java.io.File;
@@ -52,8 +52,19 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        PDFProcesses procesarpdf = new PDFProcesses();
-        procesarpdf.CleanDocumentText();
+        /*PDFProcesses procesarpdf = new PDFProcesses();
+        procesarpdf.CleanDocumentText();*/
+        Trainer leraner = new Trainer();
+        leraner.loadDataset("resources/dataset.arff");
+        leraner.evaluate();
+        leraner.learn();
+        leraner.saveModel("resources/dataset_model.dat");
+
+        Classifier classifier = new Classifier();
+        classifier.load("resources/prueba.txt");
+        classifier.loadModel("resources/dataset_model.dat");
+        classifier.makeInstance();
+        classifier.classify();
         getInstance();
 
 
