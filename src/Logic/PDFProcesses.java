@@ -8,6 +8,7 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+import javax.swing.*;
 import javax.xml.stream.FactoryConfigurationError;
 import java.io.*;
 import java.util.Scanner;
@@ -24,6 +25,8 @@ public class PDFProcesses {
     private String Text ;
 
     private File file;
+
+    public String path_txt;
 
     public PDFProcesses(){
 
@@ -114,7 +117,7 @@ public class PDFProcesses {
 
             Text = pdfStripper.getText(pdDoc);
             bw.write(Text);
-
+            CleanOneDocumentText(fileparam.getPath().replace(".pdf", ".txt"));
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -154,6 +157,7 @@ public class PDFProcesses {
                 if(getFileExtension(child).equals("txt")){
                 try
                 {
+
                     fw = new FileWriter("resources/papers/"+child.getName().replace(".txt","")+"_cleaned.txt");
                     bw = new BufferedWriter(fw);
                     Scanner scanner = null;
@@ -211,6 +215,75 @@ public class PDFProcesses {
         }
 
     }
+
+    public void CleanOneDocumentText(String fileparam)
+    {
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        int CleanNumber = 5000000;
+        String line;
+        String line2;
+
+                    try
+                    {
+                        JOptionPane.showMessageDialog(null,""+fileparam,"Información",JOptionPane.INFORMATION_MESSAGE);
+                        fw = new FileWriter(fileparam.replace(".txt","")+"_cleaned.txt");
+                        bw = new BufferedWriter(fw);
+                        Scanner scanner = null;
+                        scanner = new Scanner(fileparam);
+                        int lineNum = 0;
+                        int lineNum2 = 0;
+                        Boolean bool = false;
+
+                        while (scanner.hasNextLine())
+                        {
+                            line = scanner.nextLine();
+                            if(line.contains("Abstract") || line.contains("abstract") || line.contains("ABSTRACT"))
+                            {
+                                bool=true;
+                            }
+                            if(bool)
+                            {
+                                if (line.contains("introduction") || line.contains("Introduction") || line.contains("INTRODUCTION"))
+                                {
+                                    CleanNumber = lineNum;
+                                }
+                                if(lineNum<CleanNumber)
+                                {
+                                    bw.write(line);
+                                }
+                            }
+                            lineNum++;
+                        }
+
+                        path_txt = fileparam.replace(".txt","")+"_cleaned.txt";
+
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            if (bw != null)
+                            {
+                                bw.close();
+                            }
+                            if (fw != null)
+                            {
+                                fw.close();
+                            }
+                        } catch (IOException ex)
+                        {
+                            ex.printStackTrace();
+                        }
+
+                    }
+
+        }
+
 
     private String getFileExtension(File file) {
         String fileName = file.getName();

@@ -5,6 +5,11 @@
  */
 package Visual;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 /**
  *
  * @author carlo
@@ -16,6 +21,19 @@ public class BackLog extends javax.swing.JDialog {
      */
     public BackLog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        BufferedReader bw = null;
+
+        try{
+            bw = new BufferedReader(new FileReader("resources/baklog.txt"));
+
+            String currentLine;
+
+            while((currentLine = bw.readLine()) != null){
+                jTextArea1.append(currentLine);
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
         initComponents();
     }
 

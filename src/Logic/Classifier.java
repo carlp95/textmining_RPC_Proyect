@@ -1,5 +1,6 @@
 package Logic;
 
+import Visual.ResultDialog;
 import weka.core.*;
 import weka.core.FastVector;
 import weka.classifiers.meta.FilteredClassifier;
@@ -22,6 +23,16 @@ public class Classifier {
      */
     FilteredClassifier classifier;
 
+    File archivo_aux;
+    public String Ruta;
+    public  String pertenece;
+    ResultDialog result;
+
+
+    public Classifier(){
+        this.archivo_aux = new File("resources/baklog.txt");
+    }
+
     /**
      * This method loads the text to be classified.
      * @param fileName The name of the file that stores the text.
@@ -37,6 +48,18 @@ public class Classifier {
             System.out.println("===== Loaded text data: " + fileName + " =====");
             reader.close();
             System.out.println(text);
+            Ruta = fileName;
+
+            FileWriter fw = null;
+            BufferedWriter bw = null;
+
+            fw = new FileWriter(this.archivo_aux,true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("===== Loaded text data: " + fileName + " =====");
+            bw.write(text);
+            bw.close();
+            fw.close();
         }
         catch (IOException e) {
             System.out.println("Problem found when reading: " + fileName);
@@ -54,11 +77,22 @@ public class Classifier {
             classifier = (FilteredClassifier) tmp;
             in.close();
             System.out.println("===== Loaded model: " + fileName + " =====");
+
+            FileWriter fw = null;
+            BufferedWriter bw = null;
+
+            fw = new FileWriter(this.archivo_aux,true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("===== Loaded model: " + fileName + " =====");
+            bw.close();
+            fw.close();
         }
         catch (Exception e) {
             // Given the cast, a ClassNotFoundException must be caught along with the IOException
             System.out.println("Problem found when reading: " + fileName);
         }
+
     }
 
     /**
@@ -88,6 +122,36 @@ public class Classifier {
         instances.add(instance);
         System.out.println("===== Instance created with reference dataset =====");
         System.out.println(instances);
+
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        try{
+
+            fw = new FileWriter(this.archivo_aux,true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("===== Instance created with reference dataset =====");
+            bw.write(instances.toString());
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally
+        {
+            try
+            {
+                if (bw != null)
+                {
+                    bw.close();
+                }
+                if (fw != null)
+                {
+                    fw.close();
+                }
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+
+        }
     }
 
     /**
@@ -99,6 +163,17 @@ public class Classifier {
             double pred = classifier.classifyInstance(instances.instance(0));
             System.out.println("===== Classified instance =====");
             System.out.println("Class predicted: " + instances.classAttribute().value((int) pred));
+            pertenece = instances.classAttribute().value((int) pred);
+            FileWriter fw = null;
+            BufferedWriter bw = null;
+
+            fw = new FileWriter(this.archivo_aux,true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("===== Classified instance =====");
+            bw.write("Class predicted: " + instances.classAttribute().value((int) pred));
+            bw.close();
+            fw.close();
         }
         catch (Exception e) {
             System.out.println("Problem found when classifying the text");

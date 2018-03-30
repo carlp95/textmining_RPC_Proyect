@@ -5,6 +5,11 @@
  */
 package Visual;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  *
  * @author carlo
@@ -17,6 +22,8 @@ public class ResultDialog extends javax.swing.JDialog {
     public ResultDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        SaveResult();
+
     }
 
     /**
@@ -118,6 +125,39 @@ public class ResultDialog extends javax.swing.JDialog {
         backLog.setVisible(true);
     }//GEN-LAST:event_backlogbtnActionPerformed
 
+    private void SaveResult(){
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+
+        try{
+
+            fw = new FileWriter("resources/results.txt",true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("\n Paper: "+paperTextField.getText() + " Pertenece a: " + belongsToTextField.getText() + "\n");
+            bw.write("-------------------------------------------------------------------------------------------");
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally
+        {
+            try
+            {
+                if (bw != null)
+                {
+                    bw.close();
+                }
+                if (fw != null)
+                {
+                    fw.close();
+                }
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -162,10 +202,10 @@ public class ResultDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backlogbtn;
-    private javax.swing.JTextField belongsToTextField;
+    public javax.swing.JTextField belongsToTextField;
     private javax.swing.JLabel belongsTolbl;
     private javax.swing.JButton chooseOtherbtn;
-    private javax.swing.JTextField paperTextField;
+    public javax.swing.JTextField paperTextField;
     private javax.swing.JLabel paperlbl;
     // End of variables declaration//GEN-END:variables
 }

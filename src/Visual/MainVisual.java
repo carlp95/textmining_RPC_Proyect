@@ -5,6 +5,7 @@
  */
 package Visual;
 
+import Logic.Classifier;
 import Logic.PDFProcesses;
 
 import javax.imageio.ImageIO;
@@ -23,6 +24,7 @@ public class MainVisual extends javax.swing.JFrame {
      */
     private File FilePath;
     Image log_image, execute_image, find_image;
+    private String aux;
     public MainVisual() {
         try{
             log_image = ImageIO.read(new File("resources/images/history.png"));
@@ -149,25 +151,48 @@ public class MainVisual extends javax.swing.JFrame {
 
     private void historybtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_historybtnActionPerformed
         // TODO add your handling code here:
-        /*History historyVisual = new History(null,true);
+        History historyVisual = new History(null,true);
         historyVisual.setLocationRelativeTo(null);
-        historyVisual.setVisible(true);*/
+        historyVisual.setVisible(true);
     }//GEN-LAST:event_historybtnActionPerformed
 
     private void executeAlgorithmbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeAlgorithmbtnActionPerformed
         // TODO add your handling code here:
         PDFProcesses pdfProcesses = new PDFProcesses();
-        pdfProcesses.OneDocumentToText(FilePath);
+        boolean flag = false;
 
+            if(getFileExtension(FilePath).equals("pdf")){
+                pdfProcesses.OneDocumentToText(FilePath);
+                flag = false;
+            }else {
+                aux = FilePath.toString();
+                flag = true;
+            }
 
-
-        /*ResultDialog resultDialog = new ResultDialog(null, false);
+        ResultDialog resultDialog = new ResultDialog(null, false);
+        Classifier classifier = new Classifier();
+        if(flag){
+            classifier.load(aux);
+        }
+        else {
+            classifier.load(pdfProcesses.path_txt);
+        }
+        classifier.loadModel("resources/dataset_model.dat");
+        classifier.makeInstance();
+        classifier.classify();
+        resultDialog.paperTextField.setText(classifier.Ruta);
+        resultDialog.belongsToTextField.setText(classifier.pertenece);
         resultDialog.setLocationRelativeTo(null);
         resultDialog.setVisible(true);
-        this.dispose();*/
+        this.dispose();
     }//GEN-LAST:event_executeAlgorithmbtnActionPerformed
 
-
+    private String getFileExtension(File file) {
+        String fileName = file.getName();
+        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".")+1);
+        else return "";
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Boton_Buscar_paper;
