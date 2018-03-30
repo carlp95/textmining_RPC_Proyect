@@ -49,14 +49,14 @@ public class Trainer {
      */
     public void evaluate() {
         try {
-            trainData.setClassIndex(0);
+            trainData.setClassIndex(1);
             filter = new StringToWordVector();
-            filter.setAttributeIndices("last");
+            filter.setAttributeIndices("first");
             classifier = new FilteredClassifier();
             classifier.setFilter(filter);
             classifier.setClassifier(new NaiveBayes());
             Evaluation eval = new Evaluation(trainData);
-            eval.crossValidateModel(classifier, trainData, 4, new Random(1));
+            eval.crossValidateModel(classifier, trainData, 5, new Random(35));
             System.out.println(eval.toSummaryString());
             System.out.println(eval.toClassDetailsString());
             System.out.println("===== Evaluating on filtered (training) dataset done =====");
@@ -71,15 +71,15 @@ public class Trainer {
      */
     public void learn() {
         try {
-            trainData.setClassIndex(0);
+            trainData.setClassIndex(1);
             filter = new StringToWordVector();
-            filter.setAttributeIndices("last");
+            filter.setAttributeIndices("first");
             classifier = new FilteredClassifier();
             classifier.setFilter(filter);
             classifier.setClassifier(new NaiveBayes());
             classifier.buildClassifier(trainData);
             // Uncomment to see the classifier
-            // System.out.println(classifier);
+             //System.out.println(classifier);
             System.out.println("===== Training on filtered (training) dataset done =====");
         }
         catch (Exception e) {

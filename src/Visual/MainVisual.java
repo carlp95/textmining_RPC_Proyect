@@ -149,9 +149,9 @@ public class MainVisual extends javax.swing.JFrame {
 
     private void historybtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_historybtnActionPerformed
         // TODO add your handling code here:
-        History historyVisual = new History(null,true);
+        /*History historyVisual = new History(null,true);
         historyVisual.setLocationRelativeTo(null);
-        historyVisual.setVisible(true);
+        historyVisual.setVisible(true);*/
     }//GEN-LAST:event_historybtnActionPerformed
 
     private void executeAlgorithmbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeAlgorithmbtnActionPerformed
@@ -161,10 +161,10 @@ public class MainVisual extends javax.swing.JFrame {
 
 
 
-        ResultDialog resultDialog = new ResultDialog(null, false);
+        /*ResultDialog resultDialog = new ResultDialog(null, false);
         resultDialog.setLocationRelativeTo(null);
         resultDialog.setVisible(true);
-        this.dispose();
+        this.dispose();*/
     }//GEN-LAST:event_executeAlgorithmbtnActionPerformed
 
 
