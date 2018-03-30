@@ -117,21 +117,29 @@ public class PDFProcesses {
 
             Text = pdfStripper.getText(pdDoc);
             bw.write(Text);
-            CleanOneDocumentText(fileparam.getPath().replace(".pdf", ".txt"));
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
-        } finally {
-            try {
-                if (bw != null) {
+        }
+        finally
+        {
+            try
+            {
+                if (bw != null)
+                {
                     bw.close();
                 }
-                if (fw != null) {
+                if (fw != null)
+                {
                     fw.close();
                 }
-            } catch (IOException ex) {
+            }
+            catch (IOException ex)
+            {
                 ex.printStackTrace();
             }
-
+            CleanOneDocumentText(fileparam.getPath());
         }
     }
     //private void setFilePath(String filePath) {
@@ -226,11 +234,12 @@ public class PDFProcesses {
 
                     try
                     {
-                        JOptionPane.showMessageDialog(null,""+fileparam,"Información",JOptionPane.INFORMATION_MESSAGE);
-                        fw = new FileWriter(fileparam.replace(".txt","")+"_cleaned.txt");
+                        File file = new File(fileparam.replace(".pdf",".txt"));
+                        //OptionPane.showMessageDialog(null,""+fileparam,"Información",JOptionPane.INFORMATION_MESSAGE);
+                        fw = new FileWriter(file.getName().replace(".txt","")+"_cleaned.txt");
                         bw = new BufferedWriter(fw);
                         Scanner scanner = null;
-                        scanner = new Scanner(fileparam);
+                        scanner = new Scanner(file);
                         int lineNum = 0;
                         int lineNum2 = 0;
                         Boolean bool = false;
@@ -256,7 +265,7 @@ public class PDFProcesses {
                             lineNum++;
                         }
 
-                        path_txt = fileparam.replace(".txt","")+"_cleaned.txt";
+                        path_txt = file.getPath().replace(".txt","")+"_cleaned.txt";
 
                     }
                     catch (IOException e)
