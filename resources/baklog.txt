@@ -40,4 +40,28 @@
 @attribute text string
 
 @data
-?,' Abstract. In this paper, we provide the preliminaries of basic concepts about association rule mining and survey the list of existing association rule mining techniques. Of course, a single article cannot be a complete review of all the al-gorithms, yet we hope that the references cited will cover the major theoretical issues, guiding the researcher in interesting research directions that have yet to be explored. '===== Classified instance =====Class predicted: association
+?,' Abstract. In this paper, we provide the preliminaries of basic concepts about association rule mining and survey the list of existing association rule mining techniques. Of course, a single article cannot be a complete review of all the al-gorithms, yet we hope that the references cited will cover the major theoretical issues, guiding the researcher in interesting research directions that have yet to be explored. '===== Classified instance =====Class predicted: association===== Loaded text data: /home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/meek02_cleaned.txt ===== AbstractWe examine the learning-curve sampling method, an approach for applying machine-learning algorithms to large data sets. The approach is based on the observation thatthe computational cost of learning a model increases as a function of the sample size of thetraining data, whereas the accuracy of a model has diminishing improvements as a functionof sample size. Thus, the learning-curve sampling method monitors the increasing costsand performance as larger and larger amounts of data are used for training, and termi-nates learning when future costs outweigh future benefits. In this paper, we formalize the===== Loaded model: resources/dataset_model.dat ========== Instance created with reference dataset =====@relation 'Test relation'
+
+@attribute class {association,classification,clustering,prediction}
+@attribute text string
+
+@data
+?,' AbstractWe examine the learning-curve sampling method, an approach for applying machine-learning algorithms to large data sets. The approach is based on the observation thatthe computational cost of learning a model increases as a function of the sample size of thetraining data, whereas the accuracy of a model has diminishing improvements as a functionof sample size. Thus, the learning-curve sampling method monitors the increasing costsand performance as larger and larger amounts of data are used for training, and termi-nates learning when future costs outweigh future benefits. In this paper, we formalize the'===== Classified instance =====Class predicted: clustering===== Loaded text data: /home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/drummondc_cleaned.txt ========== Loaded model: resources/dataset_model.dat ========== Instance created with reference dataset =====@relation 'Test relation'
+
+@attribute class {association,classification,clustering,prediction}
+@attribute text string
+
+@data
+?,''===== Classified instance =====Class predicted: association===== Loaded text data: /home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/drummondc_cleaned.txt ========== Loaded model: resources/dataset_model.dat ========== Instance created with reference dataset =====@relation 'Test relation'
+
+@attribute class {association,classification,clustering,prediction}
+@attribute text string
+
+@data
+?,''===== Classified instance =====Class predicted: association===== Loaded text data: /home/judajocu/IdeaProjects/textmining_RPC_Proyect/resources/papers/session2-p1_cleaned.txt ===== Abstract. In this paper, we provide the preliminaries of basic concepts about association rule mining and survey the list of existing association rule mining techniques. Of course, a single article cannot be a complete review of all the al-gorithms, yet we hope that the references cited will cover the major theoretical issues, guiding the researcher in interesting research directions that have yet to be explored. ===== Loaded model: resources/dataset_model.dat ========== Instance created with reference dataset =====@relation 'Test relation'
+
+@attribute class {association,classification,clustering,prediction}
+@attribute text string
+
+@data
+?,' Abstract. In this paper, we provide the preliminaries of basic concepts about association rule mining and survey the list of existing association rule mining techniques. Of course, a single article cannot be a complete review of all the al-gorithms, yet we hope that the references cited will cover the major theoretical issues, guiding the researcher in interesting research directions that have yet to be explored. '===== Classified instance =====Class predicted: association===== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat ========== Loaded model: resources/dataset_model.dat =====

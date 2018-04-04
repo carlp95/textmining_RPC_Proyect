@@ -25,6 +25,7 @@ public class MainVisual extends javax.swing.JFrame {
     private File FilePath;
     Image log_image, execute_image, find_image;
     private String aux;
+    String temp;
     public MainVisual() {
         try{
             log_image = ImageIO.read(new File("resources/images/history.png"));
@@ -175,7 +176,8 @@ public class MainVisual extends javax.swing.JFrame {
             classifier.load(aux);
         }
         else {
-            classifier.load(FilePath.getPath().replace(".pdf","_cleaned.txt"));
+            temp = FilePath.getName().replace(".pdf","_cleaned.txt");
+            classifier.load("textmining_RPC_Proyect/"+temp);
         }
         classifier.loadModel("resources/dataset_model.dat");
         classifier.makeInstance();
