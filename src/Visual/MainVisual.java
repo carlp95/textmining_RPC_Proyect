@@ -11,7 +11,12 @@ import Logic.PDFProcesses;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  *
@@ -26,6 +31,9 @@ public class MainVisual extends javax.swing.JFrame {
     Image log_image, execute_image, find_image;
     private String aux;
     String temp;
+
+    boolean flag = false;
+
     public MainVisual() {
         try{
             log_image = ImageIO.read(new File("resources/images/history.png"));
@@ -137,16 +145,52 @@ public class MainVisual extends javax.swing.JFrame {
     private void Boton_Buscar_paperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Boton_Buscar_paperActionPerformed
         // TODO add your handling code here:
         JFrame parent = new JFrame();
+        Progress progress = new Progress(null,true);
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Buscar Archivo");
 
         int userSelection = fileChooser.showDialog(parent,"Seleccionar");
         if(userSelection == JFileChooser.APPROVE_OPTION){
-            File fileget = fileChooser.getSelectedFile();
-            File filepath = new File(fileget.toString());
-            FilePath = filepath;
-            filePathTextField.setText(filepath.toString());
+            progress.ac = new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                    progress.value = progress.value + 1;
+                    progress.progressbar.setValue(progress.value);
+                    File fileget = fileChooser.getSelectedFile();
+                    File filepath = new File(fileget.toString());
+                    FilePath = filepath;
+                    if(progress.progressbar.getValue() == 1){
+                        progress.progresslbl.setText("Cargando archivo pdf ...");
+                    }
+                    if(progress.progressbar.getValue() == 5){
+
+                        filePathTextField.setText(filepath.toString());
+
+                    }
+                    if(progress.progressbar.getValue() == 15){
+                        PDFProcesses pdfProcesses = new PDFProcesses();
+                        if(getFileExtension(FilePath).equals("pdf")){
+                            progress.progresslbl.setText("Extrayendo información del PDF");
+                            pdfProcesses.OneDocumentToText(filepath);
+                            flag = false;
+                        }else {
+                            progress.progresslbl.setText("Extrayendo información ...");
+                            aux = FilePath.toString();
+                            flag = true;
+                        }
+                    }
+                    if(progress.progressbar.getValue() == 100){
+                        progress.dispose();
+                        progress.timer.stop();
+                    }
+                }
+            };
+            progress.timer = new Timer(100,progress.ac);
+            progress.timer.start();
+            progress.setVisible(true);
+
         }
     }//GEN-LAST:event_Boton_Buscar_paperActionPerformed
 
@@ -159,31 +203,52 @@ public class MainVisual extends javax.swing.JFrame {
 
     private void executeAlgorithmbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeAlgorithmbtnActionPerformed
         // TODO add your handling code here:
-        PDFProcesses pdfProcesses = new PDFProcesses();
-        boolean flag = false;
 
-            if(getFileExtension(FilePath).equals("pdf")){
-                pdfProcesses.OneDocumentToText(FilePath);
-                flag = false;
-            }else {
-                aux = FilePath.toString();
-                flag = true;
-            }
-
-        ResultDialog resultDialog = new ResultDialog(null, false);
         Classifier classifier = new Classifier();
         if(flag){
             classifier.load(aux);
         }
         else {
             temp = FilePath.getName().replace(".pdf","_cleaned.txt");
-            classifier.load("textmining_RPC_Proyect/"+temp);
+            classifier.load("resources/papers/"+temp);
         }
         classifier.loadModel("resources/dataset_model.dat");
         classifier.makeInstance();
         classifier.classify();
+        ResultDialog resultDialog = new ResultDialog(null, false);
         resultDialog.paperTextField.setText(classifier.Ruta);
         resultDialog.belongsToTextField.setText(classifier.pertenece);
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+
+        try{
+
+            fw = new FileWriter("resources/results.txt",true);
+            bw = new BufferedWriter(fw);
+
+            bw.write("\nPaper: "+resultDialog.paperTextField.getText() + "\nPertenece a: " + resultDialog.belongsToTextField.getText() + "\n");
+            bw.write("-------------------------------------------------------------------------------------------"+ "\n");
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally
+        {
+            try
+            {
+                if (bw != null)
+                {
+                    bw.close();
+                }
+                if (fw != null)
+                {
+                    fw.close();
+                }
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+
+        }
         resultDialog.setLocationRelativeTo(null);
         resultDialog.setVisible(true);
         this.dispose();

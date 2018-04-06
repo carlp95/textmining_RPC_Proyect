@@ -5,6 +5,10 @@
  */
 package Visual;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 /**
  *
  * @author carlo
@@ -14,9 +18,15 @@ public class Progress extends javax.swing.JDialog {
     /**
      * Creates new form Progress
      */
+    public Timer timer;
+    public ActionListener ac;
+    public int value = 0;
+
     public Progress(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        this.setLocationRelativeTo(null);
+        progresslbl.setText("");
     }
 
     /**
@@ -58,7 +68,7 @@ public class Progress extends javax.swing.JDialog {
                         .addComponent(progressbar, javax.swing.GroupLayout.PREFERRED_SIZE, 412, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(progresslbl, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(progresslbl, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(186, 186, 186)
                         .addComponent(closeProgressbtn)))
@@ -128,7 +138,7 @@ public class Progress extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton closeProgressbtn;
-    private javax.swing.JProgressBar progressbar;
-    private javax.swing.JLabel progresslbl;
+    public javax.swing.JProgressBar progressbar;
+    public javax.swing.JLabel progresslbl;
     // End of variables declaration//GEN-END:variables
 }

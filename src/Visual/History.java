@@ -8,10 +8,7 @@ package Visual;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 
 /**
  *
@@ -27,26 +24,22 @@ public class History extends javax.swing.JDialog {
     public History(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         BufferedReader br = null;
-        FileReader fr = null;
         try{
             this.setIconImage(ImageIO.read(new File("resources/images/history.png")));
             save_image = ImageIO.read(new File("resources/images/save.png"));
 
-            fr = new FileReader(file_path);
-            br = new BufferedReader(fr);
-
-            String currentLine;
-
-            while((currentLine = br.readLine()) != null){
-                jTextArea1.append(currentLine);
-            }
-
-            br.close();
-            fr.close();
         }catch (Exception e){
             e.printStackTrace();
         }
         initComponents();
+        try{
+            br = new BufferedReader(new FileReader("resources/results.txt"));
+
+            jTextArea1.read(br, null);
+            br.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     /**

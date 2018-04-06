@@ -5,6 +5,9 @@
  */
 package Visual;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,10 +22,17 @@ public class ResultDialog extends javax.swing.JDialog {
     /**
      * Creates new form ResultDialog
      */
+    Image chooseother, backlog;
     public ResultDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        try{
+            chooseother = ImageIO.read(new File("resources/images/folder.png"));
+            backlog = ImageIO.read(new File("resources/images/notepad.png"));
+            this.setIconImage(ImageIO.read(new File("resources/images/medical-history.png")));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         initComponents();
-        SaveResult();
 
     }
 
@@ -39,10 +49,10 @@ public class ResultDialog extends javax.swing.JDialog {
         paperTextField = new javax.swing.JTextField();
         belongsTolbl = new javax.swing.JLabel();
         belongsToTextField = new javax.swing.JTextField();
-        chooseOtherbtn = new javax.swing.JButton();
-        backlogbtn = new javax.swing.JButton();
+        chooseOtherbtn = new javax.swing.JButton(new ImageIcon(chooseother));
+        backlogbtn = new javax.swing.JButton(new ImageIcon(backlog));
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Resultado");
 
         paperlbl.setText("Titulo Paper:");
@@ -125,39 +135,6 @@ public class ResultDialog extends javax.swing.JDialog {
         backLog.setVisible(true);
     }//GEN-LAST:event_backlogbtnActionPerformed
 
-    private void SaveResult(){
-        BufferedWriter bw = null;
-        FileWriter fw = null;
-
-        try{
-
-            fw = new FileWriter("resources/results.txt",true);
-            bw = new BufferedWriter(fw);
-
-            bw.write("\n Paper: "+paperTextField.getText() + " Pertenece a: " + belongsToTextField.getText() + "\n");
-            bw.write("-------------------------------------------------------------------------------------------");
-
-        }catch (IOException e){
-            e.printStackTrace();
-        }finally
-        {
-            try
-            {
-                if (bw != null)
-                {
-                    bw.close();
-                }
-                if (fw != null)
-                {
-                    fw.close();
-                }
-            } catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
-
-        }
-    }
     /**
      * @param args the command line arguments
      */

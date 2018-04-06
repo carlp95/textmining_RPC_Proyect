@@ -25,8 +25,12 @@ public class PDFProcesses {
     private String Text ;
 
     private File file;
+    private File filepath;
 
     public String path_txt;
+
+    private Thread hilo;
+    private String NombreHilo;
 
     public PDFProcesses(){
 
@@ -117,6 +121,9 @@ public class PDFProcesses {
 
             Text = pdfStripper.getText(pdDoc);
             bw.write(Text);
+            bw.close();
+            cosDoc.close();
+
         }
         catch (IOException e)
         {
@@ -236,7 +243,7 @@ public class PDFProcesses {
                     {
                         File file = new File(fileparam.replace(".pdf",".txt"));
                         //OptionPane.showMessageDialog(null,""+fileparam,"Información",JOptionPane.INFORMATION_MESSAGE);
-                        fw = new FileWriter(file.getName().replace(".txt","")+"_cleaned.txt");
+                        fw = new FileWriter(file.getPath().replace(".txt","")+"_cleaned.txt");
                         bw = new BufferedWriter(fw);
                         Scanner scanner = null;
                         scanner = new Scanner(file);

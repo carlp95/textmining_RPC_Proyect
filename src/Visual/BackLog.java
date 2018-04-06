@@ -19,22 +19,19 @@ public class BackLog extends javax.swing.JDialog {
     /**
      * Creates new form Log
      */
+
     public BackLog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         BufferedReader bw = null;
-
+        initComponents();
         try{
             bw = new BufferedReader(new FileReader("resources/baklog.txt"));
 
-            String currentLine;
-
-            while((currentLine = bw.readLine()) != null){
-                jTextArea1.append(currentLine);
-            }
+            jTextArea1.read(bw, null);
+            bw.close();
         }catch (IOException e){
             e.printStackTrace();
         }
-        initComponents();
     }
 
     /**
