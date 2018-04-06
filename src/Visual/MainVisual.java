@@ -210,7 +210,8 @@ public class MainVisual extends javax.swing.JFrame {
         }
         else {
             temp = FilePath.getName().replace(".pdf","_cleaned.txt");
-            classifier.load("resources/papers/"+temp);
+            //classifier.load("resources/papers/"+temp);
+            classifier.load(FilePath.getPath().replace(".pdf","_cleaned.txt"));
         }
         classifier.loadModel("resources/dataset_model.dat");
         classifier.makeInstance();
