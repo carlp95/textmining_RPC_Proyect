@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="textmining_RPC_Proyect:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/textmining_RPC_Proyect_jar</output-path>
+    <root id="archive" name="textmining_RPC_Proyect.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="textmining_RPC_Proyect" />
+      <element id="extracted-dir" path="D:/Programs/Weka-3-8/weka.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/pdfbox-app-2.0.9.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
